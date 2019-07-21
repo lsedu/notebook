@@ -1,6 +1,7 @@
 多级缓存架构（本地缓存+外部缓存）
 
 对常用数据进行缓存，高频率
+语句，页面，
 
 redis缓存基本知识
 
@@ -56,6 +57,48 @@ Read-through + Cache Aside
 2）缓存雪崩（缓存数据大面积过期），a:设置过期时间不一致，b:采用多级缓存，缓存级别过期时间级差  c:利用加锁或者队列方式避免过多请求，对服务器进行读写操作（串行）
 
 
+Redis数据库设计：
+
+
+问题一：多个用户的数据保存至redis的一条还是多条数据中？
+	hash{user_1: ,
+	     user_2:,  }
+	
+	XXX  list[user_1_data,user_2_data,]
+	
+	XXX  set{user_1_data,user_2_data}
+	
+	list ,set 参数对应关系比较难找
+	
+	zset{
+		value       score
+		user_1_data 1
+		user_2_data 2
+	}
+	
+	hash:缺点，捆绑，同生共死
+
+	一个对象数据保存在一个redis键值对上，方便设置有效期
+	string:(适合大用户量场景），hash适合小用户量场景
+	user:{user_id}:user_basic
+	键：user:{user_id} 值：'{"name":xxx,"mobile":xx}'
+
+问题2：如何表示用户1关注了用户2、用户3、用户4?保存user_id还是user_data
+	list
+	hash
+    zset:        
+	保存user_id较优，保存user_data浪费资源。通过user_id 再查询对应资料
+
+
+
+持久存储设计：RDB,OAF
+    致命性数据（User表），非致命性数据
+    冗余字段存在mysql与redis持久化存储
+
+
+问题3：如何存储统计数据？发布数量，关注数量，粉丝数据，点赞量
+
+    zset
 
 
 
